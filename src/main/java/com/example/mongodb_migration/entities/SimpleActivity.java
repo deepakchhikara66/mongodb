@@ -1,7 +1,5 @@
 package com.example.mongodb_migration.entities;
 
-import com.sun.istack.internal.NotNull;
-import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -15,12 +13,11 @@ import java.time.Instant;
 public class SimpleActivity {
     @Id
     private String uuid;
-    @NotNull
     private String type;
-    @NotNull private String accountId;
+    private String accountId;
     String monitoredServiceIdentifier;
-    @NotNull private String projectIdentifier;
-    @NotNull private String orgIdentifier;
+    private String projectIdentifier;
+    private String orgIdentifier;
     private Instant eventTime;
 
     public SimpleActivity(Activity activity){
