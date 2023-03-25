@@ -43,7 +43,7 @@ public class MongoDbMigrationApplication implements CommandLineRunner {
                     for(int i =0; i<10; i++){
                         List<Activity> activities = new ArrayList<>();
                         List<SimpleActivity> simpleActivities = new ArrayList<>();
-                        for(int j =0; i<1000; i++) {
+                        for(int j =0; j<1000; j++) {
                             Activity activity = Activity.builder()
                                     .accountId(accountId)
                                     .orgIdentifier(orgIdentifier)
