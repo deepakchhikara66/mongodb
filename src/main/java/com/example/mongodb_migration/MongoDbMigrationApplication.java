@@ -40,23 +40,27 @@ public class MongoDbMigrationApplication implements CommandLineRunner {
         for(String orgIdentifier: orgIdentifiers){
             for(String projectIdentifier: projectIdentifiers){
                 for(String monitoredServiceIdentifier: monitoredServiceIdentifiers){
-                    for(int i =0; i<10000; i++){
-                        Activity activity = Activity.builder()
-                                .accountId(accountId)
-                                .orgIdentifier(orgIdentifier)
-                                .projectIdentifier(projectIdentifier)
-                                .monitoredServiceIdentifier(monitoredServiceIdentifier)
-                                .eventTime(between(Instant.now().minus(30, ChronoUnit.DAYS), Instant.now()))
-                                .type("KUBERNETES")
-                                .newYaml(newYaml)
-                                .oldYaml(oldYaml)
-                                .build();
-                        activityRepository.save(activity);
-                        simpleActivityRepository.save(new SimpleActivity(activity));
-                        count++;
-                        if(count%100==0){
-                            System.out.println("Documents inserted: " + count);
+                    for(int i =0; i<10; i++){
+                        List<Activity> activities = new ArrayList<>();
+                        List<SimpleActivity> simpleActivities = new ArrayList<>();
+                        for(int j =0; i<1000; i++) {
+                            Activity activity = Activity.builder()
+                                    .accountId(accountId)
+                                    .orgIdentifier(orgIdentifier)
+                                    .projectIdentifier(projectIdentifier)
+                                    .monitoredServiceIdentifier(monitoredServiceIdentifier)
+                                    .eventTime(between(Instant.now().minus(30, ChronoUnit.DAYS), Instant.now()))
+                                    .type("KUBERNETES")
+                                    .newYaml(newYaml)
+                                    .oldYaml(oldYaml)
+                                    .build();
+                            activities.add(activity);
+                            simpleActivities.add(new SimpleActivity(activity));
+                            count++;
                         }
+                        activityRepository.saveAll(activities);
+                        simpleActivityRepository.saveAll(simpleActivities);
+                        System.out.println("Documents inserted: " + count);
                     }
                 }
             }
