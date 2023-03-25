@@ -1,5 +1,6 @@
 package com.example.mongodb_migration;
 
+import com.example.mongodb_migration.beans.MonitoredServiceParam;
 import com.example.mongodb_migration.entities.Activity;
 import com.example.mongodb_migration.entities.SimpleActivity;
 import com.example.mongodb_migration.repositories.ActivityRepository;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @SpringBootApplication
 @EnableMongoRepositories(basePackages = "com.example.mongodb_migration.repositories")
@@ -35,42 +37,53 @@ public class MongoDbMigrationApplication implements CommandLineRunner {
         List<String> accountIdList = getRandomStrings(10);
 
         int count = 0;
+        List<MonitoredServiceParam> monitoredServiceParamList = new ArrayList<>();
         for(String accountId: accountIdList){
             List<String> orgIdentifiers = getRandomStrings(2);
             List<String> projectIdentifiers = getRandomStrings(2);
             List<String> monitoredServiceIdentifiers = getRandomStrings(5);
-            System.out.println("AccountId : " + accountId);
-            System.out.println(" orgIdentifiers: " + orgIdentifiers);
-            System.out.println(" projectIdentifiers: " + projectIdentifiers);
-            System.out.println(" monitoredServiceIdentifiers: " + monitoredServiceIdentifiers);
             for(String orgIdentifier: orgIdentifiers) {
                 for (String projectIdentifier : projectIdentifiers) {
+                    System.out.println("{ accountId : '" + accountId + "', ");
+                    System.out.println(" orgIdentifier: '" + orgIdentifier + "', ");
+                    System.out.println(" projectIdentifier: " + projectIdentifier + "', ");
+                    System.out.println(" monitoredServiceIdentifiers: {$in :[" + monitoredServiceIdentifiers + "]}");
                     for (String monitoredServiceIdentifier : monitoredServiceIdentifiers) {
-                        for (int i = 0; i < 10; i++) {
-                            List<Activity> activities = new ArrayList<>();
-                            List<SimpleActivity> simpleActivities = new ArrayList<>();
-                            for (int j = 0; j < 1000; j++) {
-                                Activity activity = Activity.builder()
-                                        .accountId(accountId)
-                                        .orgIdentifier(orgIdentifier)
-                                        .projectIdentifier(projectIdentifier)
-                                        .monitoredServiceIdentifier(monitoredServiceIdentifier)
-                                        .eventTime(between(Instant.now().minus(30, ChronoUnit.DAYS), Instant.now()))
-                                        .type("KUBERNETES")
-                                        .newYaml(newYaml)
-                                        .oldYaml(oldYaml)
-                                        .build();
-                                activities.add(activity);
-                                simpleActivities.add(new SimpleActivity(activity));
-                                count++;
-                            }
-                            activityRepository.saveAll(activities);
-                            simpleActivityRepository.saveAll(simpleActivities);
-                            System.out.println("Documents inserted: " + count);
-                        }
+                        MonitoredServiceParam monitoredServiceParam = MonitoredServiceParam.builder()
+                                .accountId(accountId)
+                                .orgIdentifier(orgIdentifier)
+                                .projectIdentifier(projectIdentifier)
+                                .monitoredServiceIdentifier(monitoredServiceIdentifier)
+                                .build();
+                        monitoredServiceParamList.add(monitoredServiceParam);
                     }
                 }
             }
+        }
+
+
+        for (int i = 0; i < 100; i++) {
+            List<Activity> activities = new ArrayList<>();
+            List<SimpleActivity> simpleActivities = new ArrayList<>();
+            for (int j = 0; j < 10000; j++) {
+                MonitoredServiceParam monitoredServiceParam = getRandomItem(monitoredServiceParamList);
+                    Activity activity = Activity.builder()
+                        .accountId(monitoredServiceParam.getAccountId())
+                        .orgIdentifier(monitoredServiceParam.getOrgIdentifier())
+                        .projectIdentifier(monitoredServiceParam.getProjectIdentifier())
+                        .monitoredServiceIdentifier(monitoredServiceParam.getMonitoredServiceIdentifier())
+                        .eventTime(between(Instant.now().minus(30, ChronoUnit.DAYS), Instant.now()))
+                        .type("KUBERNETES")
+                        .newYaml(newYaml)
+                        .oldYaml(oldYaml)
+                        .build();
+                activities.add(activity);
+                simpleActivities.add(new SimpleActivity(activity));
+                count++;
+            }
+            activityRepository.saveAll(activities);
+            simpleActivityRepository.saveAll(simpleActivities);
+            System.out.println("Documents inserted: " + count);
         }
         System.out.println("insertion complete");
     }
@@ -80,6 +93,10 @@ public class MongoDbMigrationApplication implements CommandLineRunner {
         long endSeconds = endExclusive.getEpochSecond();
         long random = RandomUtils.nextLong(startSeconds, endSeconds);
         return Instant.ofEpochSecond(random);
+    }
+
+    public static MonitoredServiceParam getRandomItem(List<MonitoredServiceParam> monitoredServiceParamList) {
+        return monitoredServiceParamList.get(new Random().nextInt(monitoredServiceParamList.size()));
     }
 
     public List<String> getRandomStrings(int length){

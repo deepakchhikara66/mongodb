@@ -23,13 +23,13 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         ConnectionString connectionString = new ConnectionString("mongodb+srv://srm:961UBErfQb4psjfp@srm.urh6d.mongodb.net/srm?retryWrites=true&w=majority");
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
+
                 .build();
 
         return MongoClients.create(mongoClientSettings);
     }
-
     @Override
-    public Collection getMappingBasePackages() {
-        return Collections.singleton("com.baeldung");
+    protected boolean autoIndexCreation() {
+        return true;
     }
 }
